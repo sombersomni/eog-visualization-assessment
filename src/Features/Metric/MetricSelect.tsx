@@ -42,6 +42,7 @@ function MetricSelect() {
         query
     });
 
+    const { data } = result;
 
     return (
         <div>
@@ -56,7 +57,7 @@ function MetricSelect() {
                     onChange={handleChange}
                     labelWidth={80}
                 >
-                    { result.data && result.data.getMetrics ? 
+                    { data && data.getMetrics ? 
                         result.data.getMetrics.map((metric: string) => (
                             <MenuItem value={metric} key={metric}>
                                 {metric}

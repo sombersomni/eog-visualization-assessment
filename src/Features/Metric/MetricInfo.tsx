@@ -1,5 +1,5 @@
-import React from 'react';
-import { Provider, useSubscription, createClient } from 'urql';
+import React, { useEffect, useState } from 'react';
+import { Provider, useSubscription, createClient, defaultExchanges, subscriptionExchange } from 'urql';
 import { makeStyles } from '@material-ui/core/styles';
 import Card from '@material-ui/core/Card';
 import CardActions from '@material-ui/core/CardActions';
@@ -7,10 +7,13 @@ import CardContent from '@material-ui/core/CardContent';
 import Button from '@material-ui/core/Button';
 import Typography from '@material-ui/core/Typography';
 import { IState } from '../../store';
+import {SubscriptionClient} from 'subscriptions-transport-ws';
+import { LinearProgress } from '@material-ui/core';
 
 const useStyles = makeStyles({
     card: {
         minWidth: 275,
+        height: 100
     },
     bullet: {
         display: 'inline-block',
@@ -26,17 +29,16 @@ const useStyles = makeStyles({
 });
 
 const client = createClient({
-    url: 'https://react.eogresources.com/graphql'
+    url: 'https://react.eogresources.com/graphql',
+    exchanges: [
+        ...defaultExchanges,
+        subscriptionExchange({ forwardSubscription: operation => subscriptionClient.request(operation)})
+    ]
 });
 
-const query = `subscription { 
-    newMeasurement {
-        metric
-        at
-        value
-        unit
-    } 
-}`;
+const subscriptionClient = new SubscriptionClient( 'ws://react.eogresources.com/graphql', { reconnect: true });
+
+const query = 'subscription { newMeasurement { metric value at unit } }';
 
 export default () => (
     <Provider value={client}>
@@ -57,26 +59,30 @@ export default () => (
 function MetricInfo() {
     const classes = useStyles();
 
-    //useSubscription({ query });
+    const [ result ] = useSubscription({ query });
+
+    const { data, fetching } = result;
+    
+    useEffect(() => {
+        if (data.newMeasurement.metric === metric) {
+            saveMeasurement(data.newMeasurement);
+        }
+    }, [data])
+
+    if (fetching) {
+        return <LinearProgress />
+    }
 
     return (
         <Card className={classes.card}>
             <CardContent>
                 <Typography variant="h5" component="h2">
-                    Metric
+                    { metric }
                 </Typography>
                 <Typography className={classes.pos} color="textSecondary">
-                    adjective
-        </Typography>
-                <Typography variant="body2" component="p">
-                    well meaning and kindly.
-          <br />
-                    {'"a benevolent smile"'}
+                    {`${data.newMeasurement.value} ${data.newMeasurement.unit}`}
                 </Typography>
             </CardContent>
-            <CardActions>
-                <Button size="small">Learn More</Button>
-            </CardActions>
         </Card>
     );
 }
