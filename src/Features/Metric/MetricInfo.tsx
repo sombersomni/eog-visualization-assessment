@@ -56,22 +56,23 @@ export default () => (
 //     };
 // };
 
-function MetricInfo() {
+function MetricInfo({metric = 'oilTemp'}) {
     const classes = useStyles();
 
     const [ result ] = useSubscription({ query });
+    const [ savedMeasurement, saveMeasurement ] = useState({
+        value: 10,
+        unit: '%'
+    })
 
     const { data, fetching } = result;
     
     useEffect(() => {
-        if (data.newMeasurement.metric === metric) {
-            saveMeasurement(data.newMeasurement);
+        console.log(result, metric);
+        if (data && data.newMeasurement.metric === metric) {
+            saveMeasurement({...data.newMeasurement});
         }
     }, [data])
-
-    if (fetching) {
-        return <LinearProgress />
-    }
 
     return (
         <Card className={classes.card}>
@@ -80,7 +81,7 @@ function MetricInfo() {
                     { metric }
                 </Typography>
                 <Typography className={classes.pos} color="textSecondary">
-                    {`${data.newMeasurement.value} ${data.newMeasurement.unit}`}
+                    {data && data.newMeasurement.metric === metric ? `${data.newMeasurement.value} ${data.newMeasurement.unit}` : `${savedMeasurement.value} ${savedMeasurement.unit}` }
                 </Typography>
             </CardContent>
         </Card>
