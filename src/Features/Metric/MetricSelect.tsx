@@ -4,7 +4,7 @@ import InputLabel from '@material-ui/core/InputLabel';
 import MenuItem from '@material-ui/core/MenuItem';
 import FormControl from '@material-ui/core/FormControl';
 import Select from '@material-ui/core/Select';
-import { createClient, useQuery } from 'urql';
+import { Provider, createClient, useQuery } from 'urql';
 
 const useStyles = makeStyles(theme => ({
     formControl: {
@@ -22,7 +22,13 @@ const client = createClient({
 
 const query = '{ getMetrics }';
 
-export default function SimpleSelect() {
+export default () => (
+    <Provider value={client}>
+        <MetricSelect />
+    </Provider>
+)
+
+function MetricSelect() {
     const classes = useStyles();
     const [metric, setMetric] = React.useState('');
 
@@ -36,7 +42,6 @@ export default function SimpleSelect() {
         query
     });
 
-    console.log(result);
 
     return (
         <div>
@@ -51,12 +56,12 @@ export default function SimpleSelect() {
                     onChange={handleChange}
                     labelWidth={80}
                 >
-                    <MenuItem value="">
-                        <em>None</em>
-                    </MenuItem>
-                    <MenuItem value={10}>Ten</MenuItem>
-                    <MenuItem value={20}>Twenty</MenuItem>
-                    <MenuItem value={30}>Thirty</MenuItem>
+                    { result.data && result.data.getMetrics ? 
+                        result.data.getMetrics.map((metric: string) => (
+                            <MenuItem value={metric} key={metric}>
+                                {metric}
+                            </MenuItem>
+                    )) : null }
                 </Select>
             </FormControl>
         </div>
