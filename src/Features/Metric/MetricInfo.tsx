@@ -1,5 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { Provider, useSubscription, createClient, defaultExchanges, subscriptionExchange } from 'urql';
+import { useSelector, useDispatch } from 'react-redux';
+import { actions, Measurement } from './reducer';
+//matrial ui
 import { makeStyles } from '@material-ui/core/styles';
 import Card from '@material-ui/core/Card';
 import CardActions from '@material-ui/core/CardActions';
@@ -40,9 +43,9 @@ const subscriptionClient = new SubscriptionClient( 'ws://react.eogresources.com/
 
 const query = 'subscription { newMeasurement { metric value at unit } }';
 
-export default () => (
+export default (props: any) => (
     <Provider value={client}>
-        <MetricInfo />
+        <MetricInfo metric={props.metric} />
     </Provider>
 )
 
@@ -56,21 +59,26 @@ export default () => (
 //     };
 // };
 
-function MetricInfo({metric = 'oilTemp'}) {
+function MetricInfo(props: any) {
+    const { metric } = props;
     const classes = useStyles();
-
+    const dispatch = useDispatch();
+    //const { metric } = useSelector((state: IState) => ({ metric: state.measurement.metric }));
     const [ result ] = useSubscription({ query });
     const [ savedMeasurement, saveMeasurement ] = useState({
+        metric,
         value: 10,
         unit: '%'
     })
 
-    const { data, fetching } = result;
+    const { data } = result;
     
     useEffect(() => {
-        console.log(result, metric);
-        if (data && data.newMeasurement.metric === metric) {
-            saveMeasurement({...data.newMeasurement});
+        if (data) {
+            if (data.newMeasurement.metric === metric) {
+                saveMeasurement({...data.newMeasurement});
+                dispatch(actions.measurementReceived(data.newMeasurement));
+            } 
         }
     }, [data])
 

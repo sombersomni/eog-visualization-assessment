@@ -13,10 +13,18 @@ const MetricContainer = styled.div`
 `;
 
 export default function MetricWrapper() {
+    const [metric, setMetric] = React.useState('injValveOpen');
+    function handleChange(event: any) : void {
+        const metric = event.target.value;
+        setMetric(metric);
+        //dispatch(actions.metricReceived(metric));
+    };
     return (
         <MetricContainer>
-            <MetricSelect />
-            <MetricInfo />
+            <MetricSelect 
+                handleChange={handleChange} 
+                metric={metric} />
+            <MetricInfo metric={metric} />
             <MeasurementChart />
         </MetricContainer>
     )

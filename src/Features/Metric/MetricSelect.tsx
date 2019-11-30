@@ -1,10 +1,15 @@
 import React, { useEffect } from 'react';
+//material ui
 import { makeStyles } from '@material-ui/core/styles';
 import InputLabel from '@material-ui/core/InputLabel';
 import MenuItem from '@material-ui/core/MenuItem';
 import FormControl from '@material-ui/core/FormControl';
 import Select from '@material-ui/core/Select';
+//utilities
 import { Provider, createClient, useQuery } from 'urql';
+import { useDispatch } from 'react-redux';
+import { actions } from './reducer';
+
 
 const useStyles = makeStyles(theme => ({
     formControl: {
@@ -22,22 +27,16 @@ const client = createClient({
 
 const query = '{ getMetrics }';
 
-export default () => (
+export default (props: any) => (
     <Provider value={client}>
-        <MetricSelect />
+        <MetricSelect handleChange={props.handleChange} metric={props.metric}/>
     </Provider>
 )
 
-function MetricSelect() {
+function MetricSelect(props: any) {
+    const {handleChange, metric} = props;
     const classes = useStyles();
-    const [metric, setMetric] = React.useState('');
-
     const inputLabel = React.useRef(null);
-
-    const handleChange = (event: any) => {
-        setMetric(event.target.value);
-    };
-
     const [result] = useQuery({
         query
     });

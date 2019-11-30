@@ -1,8 +1,9 @@
 import React from 'react';
+import { useSelector } from 'react-redux';
 import { createClient, useQuery, Provider } from 'urql';
 //material ui
 import LinearProgress from '@material-ui/core/LinearProgress';
-
+import { IState }from '../../store';
 const client = createClient({ url: 'https://react.eogresources.com/graphql' });
 
 const query = `
@@ -21,11 +22,12 @@ export default () => (
 
 function MeasurementChart() {
     const [ result ] = useQuery({ query });
+    const { metric, at, value, unit } = useSelector((state: IState) => ({ ...state.measurement}));
     const { data, fetching } = result;
     if (fetching) {
         return <LinearProgress />
     }
-    console.log(result);
+    console.log(metric);
     return (
         <div>
             Metric and Measurement
