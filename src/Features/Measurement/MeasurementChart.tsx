@@ -26,7 +26,7 @@ export default () => (
 )
 
 function MeasurementChart() {
-    const { metric, at, value, unit } = useSelector((state: IState) => ({ ...state.measurement}));
+    const { selectedMetrics } = useSelector((state: IState) => ({ ...state.metric}));
     const currentTimestamp = Date.now();
     const input = { metricName: 'oilTemp', after: currentTimestamp, before: currentTimestamp - hourDiff }
     const [ result ] = useQuery({ query, variables: { input } });

@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 //material ui
 import { makeStyles } from '@material-ui/core/styles';
 import InputLabel from '@material-ui/core/InputLabel';
@@ -7,8 +7,9 @@ import FormControl from '@material-ui/core/FormControl';
 import Select from '@material-ui/core/Select';
 //utilities
 import { Provider, createClient, useQuery } from 'urql';
-import { useDispatch } from 'react-redux';
-import { actions } from './reducer';
+import { useDispatch, useSelector } from 'react-redux';
+import { actions } from './reducer'
+import { IState } from '../../store';
 
 
 const useStyles = makeStyles(theme => ({
@@ -34,14 +35,26 @@ export default (props: any) => (
 )
 
 function MetricSelect(props: any) {
-    const {handleChange, metric} = props;
+    const [metric, setMetric] = useState('injValveOpen');
+    const [metricOptions, setMetricOptions] = useState([]);
+    const dispatch = useDispatch();
+    const [selectedMetric] = useSelector((state: IState) => { setelectedMetric: state.setelectedMetric });
     const classes = useStyles();
     const inputLabel = React.useRef(null);
-    const [result] = useQuery({
-        query
-    });
+    function handleChange(event: any) : void {
+        const metric = event.target.value;
+        setMetric(metric);
+        dispatch(actions.addMetric(metric));
+    };
 
-    const { data } = result;
+    useEffect(() => {
+        const [result] = useQuery({
+            query
+        });
+        const { data } = result;
+        setMetricOptions(data.getMetrics);
+    }, [])
+
 
     return (
         <div>
@@ -56,8 +69,7 @@ function MetricSelect(props: any) {
                     onChange={handleChange}
                     labelWidth={80}
                 >
-                    { data && data.getMetrics ? 
-                        result.data.getMetrics.map((metric: string) => (
+                    { metricOptions.map((metric: string) => (
                             <MenuItem value={metric} key={metric}>
                                 {metric}
                             </MenuItem>

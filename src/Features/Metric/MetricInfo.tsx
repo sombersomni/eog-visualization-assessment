@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Provider, useSubscription, createClient, defaultExchanges, subscriptionExchange } from 'urql';
 import { useSelector, useDispatch } from 'react-redux';
-import { actions, Measurement } from './reducer';
+import { actions, Measurement } from '../Measurement/reducer';
 //matrial ui
 import { makeStyles } from '@material-ui/core/styles';
 import Card from '@material-ui/core/Card';
@@ -43,44 +43,45 @@ const subscriptionClient = new SubscriptionClient( 'ws://react.eogresources.com/
 
 const query = 'subscription { newMeasurement { metric value at unit } }';
 
-export default (props: any) => (
+export default () => (
     <Provider value={client}>
-        <MetricInfo metric={props.metric} />
+        <MultipleMetrics/>
     </Provider>
 )
 
-// const getMeasurement = (state: IState) => {
-//     const { metric, at, value, unit } = state.measurement;
-//     return {
-//         metric,
-//         at,
-//         value,
-//         unit
-//     };
-// };
+function MultipleMetrics() {
+    const dispatch = useDispatch();
+    //const { selectedMetrics } = useSelector((state: IState) => ({ selectedMetrics: state.selectedMetrics }));
+    const [ result ] = useSubscription({ query });
+    const { data } = result;
+    return (
+        <div>
+            { ['oilTemp'].map((metric: string) => (
+                <MetricInfo 
+                    key={metric}
+                    metric={metric}
+                    measurement={data && data.newMeasurement.metric === metric ? data.newMeasurement : null} />
+            )) }
+        </div>
+    )
+}
 
-function MetricInfo(props: any) {
-    const { metric } = props;
+function MetricInfo(props: { metric: string, measurement: Measurement}) {
+    const { metric, measurement } = props;
     const classes = useStyles();
     const dispatch = useDispatch();
-    //const { metric } = useSelector((state: IState) => ({ metric: state.measurement.metric }));
-    const [ result ] = useSubscription({ query });
     const [ savedMeasurement, saveMeasurement ] = useState({
         metric,
         value: 10,
         unit: '%'
     })
 
-    const { data } = result;
-    
     useEffect(() => {
-        if (data) {
-            if (data.newMeasurement.metric === metric) {
-                saveMeasurement({...data.newMeasurement});
-                dispatch(actions.measurementReceived(data.newMeasurement));
-            } 
+        if (measurement) {
+                saveMeasurement({...measurement});
+                dispatch(actions.measurementReceived(measurement));
         }
-    }, [data])
+    }, [measurement])
 
     return (
         <Card className={classes.card}>
@@ -89,7 +90,7 @@ function MetricInfo(props: any) {
                     { metric }
                 </Typography>
                 <Typography className={classes.pos} color="textSecondary">
-                    {data && data.newMeasurement.metric === metric ? `${data.newMeasurement.value} ${data.newMeasurement.unit}` : `${savedMeasurement.value} ${savedMeasurement.unit}` }
+                    {`${measurement.value} ${measurement.unit}`}
                 </Typography>
             </CardContent>
         </Card>
