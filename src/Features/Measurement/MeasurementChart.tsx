@@ -7,10 +7,15 @@ import { IState }from '../../store';
 const client = createClient({ url: 'https://react.eogresources.com/graphql' });
 
 const query = `
-query {
-    heartBeat
+query($input: MeasurmentQuery!) {
+  getMeasurements(input: $input) {
+        metric
+        at
+        value
+        unit
+    }
 }
-`
+`;
 const hours = 5;
 const hourDiff = 1000 * 60 * 60 * hours;
 
@@ -21,13 +26,15 @@ export default () => (
 )
 
 function MeasurementChart() {
-    const [ result ] = useQuery({ query });
     const { metric, at, value, unit } = useSelector((state: IState) => ({ ...state.measurement}));
+    const currentTimestamp = Date.now();
+    const input = { metricName: 'oilTemp', after: currentTimestamp, before: currentTimestamp - hourDiff }
+    const [ result ] = useQuery({ query, variables: { input } });
     const { data, fetching } = result;
     if (fetching) {
         return <LinearProgress />
     }
-    console.log(metric);
+    console.log(result);
     return (
         <div>
             Metric and Measurement
