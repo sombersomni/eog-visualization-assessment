@@ -1,7 +1,10 @@
-import { createSlice, PayloadAction } from 'redux-starter-kit';
+import { PayloadAction } from 'redux-starter-kit';
 
-export type Metric = {
-  selectedMetric: [string];
+export type Measurement = {
+    metric: string;
+    at: number;
+    value: number;
+    unit: string;
 };
 
 export type ApiErrorAction = {
@@ -9,20 +12,29 @@ export type ApiErrorAction = {
 };
 
 const initialState = {
-  selectedMetrics: []
+  metric: 'oilTemp',
+  at: 0,
+  value: 0,
+  unit: ''
 };
 
-const slice = createSlice({
-  name: 'metric',
-  initialState,
-  reducers: {
-    weatherDataRecevied: (state, action: PayloadAction<Metric>) => {
-      const { selectedMetric } = action.payload;
-      state.selectedMetric = selectedMetric
-    },
-    weatherApiErrorReceived: (state, action: PayloadAction<ApiErrorAction>) => state,
-  },
-});
+export const actions = {
+  'metricReceived': (payload: string) => ({
+    type: 'UPDATE_METRIC',
+    payload
+  }),
+  'measurementReceived': (payload: Measurement) => ({
+    type: 'UPDATE_MEASURMENT',
+    payload
+  })
+};
 
-export const reducer = slice.reducer;
-export const actions = slice.actions;
+
+export const reducer = (state = initialState, action: PayloadAction<Measurement>) => {
+  switch(action.type) {
+    case 'UPDATE_MEASUREMENT':
+      return {...state};
+    default: 
+      return state;
+  }
+}

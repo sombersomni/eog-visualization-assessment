@@ -1,7 +1,9 @@
 import { reducer as weatherReducer } from '../Features/Weather/reducer';
-import { reducer as measurementReducer } from '../Features/Metric/reducer';
+import { reducer as measurementReducer } from '../Features/Measurement/reducer';
+import { reducer as metricReducer } from '../Features/Metric/reducer';
 
 export default {
   weather: weatherReducer,
-  measurement: measurementReducer
+  measurement: measurementReducer,
+  metric: metricReducer
 };
