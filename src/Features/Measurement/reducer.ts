@@ -2,7 +2,7 @@ import { PayloadAction } from 'redux-starter-kit';
 
 export type Measurement = {
     metric: string;
-    at: number;
+    at: number | string;
     value: number;
     unit: string;
 };

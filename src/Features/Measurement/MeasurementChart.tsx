@@ -1,13 +1,17 @@
 import React from 'react';
 import { useSelector } from 'react-redux';
 import { createClient, useQuery, Provider } from 'urql';
+import {
+    LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend,
+  } from 'recharts';
 //material ui
 import LinearProgress from '@material-ui/core/LinearProgress';
-import { IState }from '../../store';
+import { Measurement } from './reducer';
+import { IState } from '../../store';
 const client = createClient({ url: 'https://react.eogresources.com/graphql' });
 
 const query = `
-query($input: MeasurmentQuery!) {
+query($input: MeasurementQuery!) {
   getMeasurements(input: $input) {
         metric
         at
@@ -16,8 +20,6 @@ query($input: MeasurmentQuery!) {
     }
 }
 `;
-const hours = 5;
-const hourDiff = 1000 * 60 * 60 * hours;
 
 export default () => (
     <Provider value={client}>
@@ -25,32 +27,42 @@ export default () => (
     </Provider>
 )
 
+function mapResultToTable(measurements: Array<Measurement>): Array<Measurement> {
+    return measurements.map((measurement: Measurement) => {
+        const currentDate = new Date(measurement.at);
+        const timeString = currentDate.toLocaleTimeString('en-US');
+        return { ...measurement, at: timeString };
+    })
+}
+
 function MeasurementChart() {
-    const { selectedMetrics } = useSelector((state: IState) => ({ ...state.metric}));
-    const currentTimestamp = Date.now();
-    const input = { metricName: 'oilTemp', after: currentTimestamp, before: currentTimestamp - hourDiff }
-    const [ result ] = useQuery({ query, variables: { input } });
+    const { selectedMetric } = useSelector((state: IState) => ({ selectedMetric: state.metric.selectedMetric }));
+    const input = { metricName: selectedMetric }
+    console.log(input);
+    const [result] = useQuery({ query, variables: { input } });
     const { data, fetching } = result;
-    if (fetching) {
+    if (!data) {
         return <LinearProgress />
     }
-    console.log(result);
     return (
-        <div>
-            Metric and Measurement
-        </div>
+        <LineChart
+        width={600}
+        height={350}
+        data={mapResultToTable(data.getMeasurements.slice(0, 100))}
+        margin={{
+          top: 5, right: 30, left: 20, bottom: 5,
+        }}
+      >
+        <CartesianGrid strokeDasharray="3 3" />
+        <XAxis dataKey="at" />
+        <YAxis label={data.getMeasurements[0].unit} />
+        <Tooltip />
+        <Legend />
+        <Line type="monotone" dataKey="value" stroke="#8884d8" activeDot={{ r: 1 }} />
+      </LineChart>
     )
 }
 
 /*
-    <LineChart width={730} height={500} data={[{name: 'a', pv: 12, uv: 100 }]}
-        margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
-            <CartesianGrid strokeDasharray="3 3" />
-            <XAxis dataKey="name" />
-            <YAxis />
-            <Tooltip />
-            <Legend />
-            <Line type="monotone" dataKey="pv" stroke="#8884d8" />
-            <Line type="monotone" dataKey="uv" stroke="#82ca9d" />
-        </LineChart>
+     
 */
