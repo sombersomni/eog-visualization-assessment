@@ -67,7 +67,7 @@ function MetricInfo() {
                     dispatch(actions.measurementReceived(newMeasurement));
                 }
         }
-    }, [data])
+    }, [data, selectedMetric, dispatch])
 
     return (
         <Card className={classes.card}>

@@ -38,9 +38,8 @@ function mapResultToTable(measurements: Array<Measurement>): Array<Measurement> 
 function MeasurementChart() {
     const { selectedMetric } = useSelector((state: IState) => ({ selectedMetric: state.metric.selectedMetric }));
     const input = { metricName: selectedMetric }
-    console.log(input);
     const [result] = useQuery({ query, variables: { input } });
-    const { data, fetching } = result;
+    const { data } = result;
     if (!data) {
         return <LinearProgress />
     }
