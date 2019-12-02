@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 //material ui
 import { makeStyles } from '@material-ui/core/styles';
 import InputLabel from '@material-ui/core/InputLabel';
@@ -7,9 +7,9 @@ import FormControl from '@material-ui/core/FormControl';
 import Select from '@material-ui/core/Select';
 //utilities
 import { Provider, createClient, useQuery } from 'urql';
-import { useDispatch, useSelector } from 'react-redux';
+import { useDispatch } from 'react-redux';
 import { actions } from './reducer'
-import { IState } from '../../store';
+import { LinearProgress } from '@material-ui/core';
 
 
 const useStyles = makeStyles(theme => ({
@@ -28,33 +28,31 @@ const client = createClient({
 
 const query = '{ getMetrics }';
 
-export default (props: any) => (
+export default () => (
     <Provider value={client}>
-        <MetricSelect handleChange={props.handleChange} metric={props.metric}/>
+        <MetricSelect />
     </Provider>
 )
 
-function MetricSelect(props: any) {
+function MetricSelect() {
     const [metric, setMetric] = useState('injValveOpen');
-    const [metricOptions, setMetricOptions] = useState([]);
     const dispatch = useDispatch();
-    const [selectedMetric] = useSelector((state: IState) => { setelectedMetric: state.setelectedMetric });
     const classes = useStyles();
     const inputLabel = React.useRef(null);
     function handleChange(event: any) : void {
         const metric = event.target.value;
         setMetric(metric);
-        dispatch(actions.addMetric(metric));
+        dispatch(actions.setMetric(metric));
     };
 
-    useEffect(() => {
-        const [result] = useQuery({
-            query
-        });
-        const { data } = result;
-        setMetricOptions(data.getMetrics);
-    }, [])
+    const [result] = useQuery({
+        query
+    });
+    const { data, fetching } = result;
 
+    if(fetching) {
+        return <LinearProgress />
+    }
 
     return (
         <div>
@@ -69,7 +67,7 @@ function MetricSelect(props: any) {
                     onChange={handleChange}
                     labelWidth={80}
                 >
-                    { metricOptions.map((metric: string) => (
+                    { data ? data.getMetrics.map((metric: string) => (
                             <MenuItem value={metric} key={metric}>
                                 {metric}
                             </MenuItem>

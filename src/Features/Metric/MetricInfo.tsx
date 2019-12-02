@@ -1,17 +1,14 @@
 import React, { useEffect, useState } from 'react';
 import { Provider, useSubscription, createClient, defaultExchanges, subscriptionExchange } from 'urql';
 import { useSelector, useDispatch } from 'react-redux';
-import { actions, Measurement } from '../Measurement/reducer';
+import { actions } from '../Measurement/reducer';
 //matrial ui
 import { makeStyles } from '@material-ui/core/styles';
 import Card from '@material-ui/core/Card';
-import CardActions from '@material-ui/core/CardActions';
 import CardContent from '@material-ui/core/CardContent';
-import Button from '@material-ui/core/Button';
 import Typography from '@material-ui/core/Typography';
 import { IState } from '../../store';
 import {SubscriptionClient} from 'subscriptions-transport-ws';
-import { LinearProgress } from '@material-ui/core';
 
 const useStyles = makeStyles({
     card: {
@@ -45,52 +42,41 @@ const query = 'subscription { newMeasurement { metric value at unit } }';
 
 export default () => (
     <Provider value={client}>
-        <MultipleMetrics/>
+        <MetricInfo />
     </Provider>
 )
 
-function MultipleMetrics() {
-    const dispatch = useDispatch();
-    //const { selectedMetrics } = useSelector((state: IState) => ({ selectedMetrics: state.selectedMetrics }));
-    const [ result ] = useSubscription({ query });
-    const { data } = result;
-    return (
-        <div>
-            { ['oilTemp'].map((metric: string) => (
-                <MetricInfo 
-                    key={metric}
-                    metric={metric}
-                    measurement={data && data.newMeasurement.metric === metric ? data.newMeasurement : null} />
-            )) }
-        </div>
-    )
-}
 
-function MetricInfo(props: { metric: string, measurement: Measurement}) {
-    const { metric, measurement } = props;
+function MetricInfo() {
     const classes = useStyles();
     const dispatch = useDispatch();
+    const { selectedMetric } = useSelector((state: IState) => ({ selectedMetric: state.metric.selectedMetric }));
+    const [ result ] = useSubscription({ query });
+    const { data } = result;
     const [ savedMeasurement, saveMeasurement ] = useState({
-        metric,
+        selectedMetric,
         value: 10,
         unit: '%'
     })
 
     useEffect(() => {
-        if (measurement) {
-                saveMeasurement({...measurement});
-                dispatch(actions.measurementReceived(measurement));
+        if (data) {
+            const { newMeasurement } = data;
+                if (newMeasurement.metric === selectedMetric) {
+                    saveMeasurement({...newMeasurement});
+                    dispatch(actions.measurementReceived(newMeasurement));
+                }
         }
-    }, [measurement])
+    }, [data])
 
     return (
         <Card className={classes.card}>
             <CardContent>
                 <Typography variant="h5" component="h2">
-                    { metric }
+                    { selectedMetric }
                 </Typography>
                 <Typography className={classes.pos} color="textSecondary">
-                    {`${measurement.value} ${measurement.unit}`}
+                    {data && data.newMeasurement.metric === selectedMetric? `${data.newMeasurement.value} ${data.newMeasurement.unit}` : `${savedMeasurement.value} ${savedMeasurement.unit}`}
                 </Typography>
             </CardContent>
         </Card>

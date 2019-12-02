@@ -1,7 +1,7 @@
 import { createSlice, PayloadAction } from 'redux-starter-kit';
 
 export type Metric = {
-  selectedMetric: [string];
+  selectedMetric: string;
 };
 
 export type ApiErrorAction = {
@@ -9,18 +9,15 @@ export type ApiErrorAction = {
 };
 
 const initialState = {
-  selectedMetrics: []
+  selectedMetric: 'injValveOpen'
 };
 
 const slice = createSlice({
   name: 'metric',
   initialState,
   reducers: {
-    addMetric: (state, action: PayloadAction<string>) => {
-        state.selectedMetric.push(action.payload);
-    },
-    removeMetric: (state, action: PayloadAction<string>) => {
-        state.selectedMetric = state.selectedMetric.filter((metric: string) => metric === action.payload);
+    setMetric: (state, action: PayloadAction<string>): void => {
+        state.selectedMetric = action.payload;
     },
     weatherApiErrorReceived: (state, action: PayloadAction<ApiErrorAction>) => state,
   },
